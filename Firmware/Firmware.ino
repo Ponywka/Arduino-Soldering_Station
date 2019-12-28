@@ -10,20 +10,18 @@
 
 #include "libraries/fontController.h"
 
-#define DisplayY 32 // пикселей по вертикале
-#define Displayx 128 // пикселей по горизонтали
+#define displayWidth  128 // Ширина экрана в пикселях
+#define displayHeight 64  // Высота экрана в пикселях
 
-Adafruit_SSD1306 display(Displayx, DisplayY, &Wire, 4); // добавляем новый дисплей
+Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, 4); // Библиотека дисплея
 
-/*
-	Font format:
-	0: width (16px)
-	1: height (24px)
-	2: bytesByLine
-	3: charArrayLenght
-	4-*: chars
-	*-*: bitmap
-*/
+void drawCopyright(){
+	display.clearDisplay();
+	//display.drawBitmap(48, 26, image_github, 16, 16, 1);
+	display.drawBitmap(0, 6, image_pony, 32, 53, 1);
+	FontManager::drawTextFormated(display, 32, 0, displayWidth, displayHeight, font_terminus12, (char*)"  Ponywka");
+	display.display();
+}
 
 void setup() {
 	Serial.begin(9600);
@@ -33,11 +31,7 @@ void setup() {
 		for(;;);
 	}
 
-	display.clearDisplay();
-	display.drawBitmap(48, 26, image_github, 16, 16, 1);
-	display.drawBitmap(0, 6, image_pony, 32, 53, 1);
-	FontManager::drawText(display, 48, 26, font_terminus12, (char*)"  Ponywka");
-	display.display();
+	drawCopyright();
 }
 
 void loop() {
