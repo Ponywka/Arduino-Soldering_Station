@@ -10,8 +10,8 @@
 
 #include "libraries/fontController.h"
 
-const int DisplayY = 64; // пикселей по вертикале
-const int Displayx = 128; // пикселей по горизонтали
+#define DisplayY 32 // пикселей по вертикале
+#define Displayx 128 // пикселей по горизонтали
 
 Adafruit_SSD1306 display(Displayx, DisplayY, &Wire, 4); // добавляем новый дисплей
 
@@ -28,7 +28,7 @@ Adafruit_SSD1306 display(Displayx, DisplayY, &Wire, 4); // добавляем н
 void setup() {
 	Serial.begin(9600);
 	// Инициализация дисплея
-	if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3D)) {
+	if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3D)) { // тут под ставить свой I2C адресс
 		Serial.println(F("SSD1306 allocation failed"));
 		for(;;);
 	}
