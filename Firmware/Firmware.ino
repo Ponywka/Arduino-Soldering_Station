@@ -10,7 +10,10 @@
 
 #include "libraries/fontController.h"
 
-Adafruit_SSD1306 display(128, 64, &Wire, 4);
+const int DisplayY = 64; // пикселей по вертикале
+const int Displayx = 128; // пикселей по горизонтали
+
+Adafruit_SSD1306 display(Displayx, DisplayY, &Wire, 4); // добавляем новый дисплей
 
 /*
 	Font format:
