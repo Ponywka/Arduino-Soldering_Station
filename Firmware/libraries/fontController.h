@@ -14,99 +14,243 @@
     ..-..| Массив несжатой картинки (длина до конца)
 */
 
-class FontManager
+enum AnchorPoint
 {
+    LeftTop,
+    CenterTop,
+    RightTop,
+    LeftCenter,
+    CenterCenter,
+    RightCenter,
+    LeftBottom,
+    CenterBottom,
+    RightBottom
+};
+
+enum TextPosition
+{
+    Left,
+    Center,
+    Right
+};
+
+class FontController
+{
+protected:
+    int charWidth;            // Ширина одного символа [пиксели]
+    int charHeight;           // Высота одного символа [пиксели]
+    int lineWeight;           // Размер одной строки [байты]
+    int countCharacters;      // Количество символов
+    uint8_t tmpdata[1] = {0}; // Костыль для вывода одного байта за который надо отрезать руки автору
+    Adafruit_SSD1306 &display;
+    uint8_t *font;
+
 public:
-    static void drawText(Adafruit_SSD1306 display, int x, int y, const uint8_t *font, char *letters, int color = 1)
+    FontController(Adafruit_SSD1306 &disp) : display(disp){};
+
+    void setFont(const uint8_t *f)
     {
-        // Вычисление размера изображения в символе [в байтах]
-        int oneCharSize = pgm_read_byte(font + 1) * pgm_read_byte(font + 2);
-        uint8_t character[oneCharSize]; // Массив с изображением символа
+        font = (uint8_t *)f;
+        charWidth = pgm_read_byte(font + 0);
+        charHeight = pgm_read_byte(font + 1);
+        lineWeight = pgm_read_byte(font + 2);
+        countCharacters = pgm_read_byte(font + 3);
+    }
 
-        // Поиск символов и вывод их на дисплей
-        int charPos = 0;
+    //Это типо для дебагинга. Не трогать пока не сделаем либу полностью!!!
 
-        int letterInLine = 0;
-        int line = 0;
-
-        for (int letterID = 0; letterID < strlen(letters); letterID++)
+    void fontLog()
+    {
+        Serial.print("charWidth=");
+        Serial.println(charWidth);
+        Serial.print("charHeight=");
+        Serial.println(charHeight);
+        Serial.print("lineWeight=");
+        Serial.println(lineWeight);
+        Serial.print("countCharacters=");
+        Serial.println(countCharacters);
+        Serial.print("characters=");
+        // Перебор всех символов
+        for (int i = 0; i < countCharacters; i++)
         {
-            if ((int)letters[letterID] == '\n')
-            {
-                line++;
-                letterInLine = 0;
-                continue;
-            }
-            // Новое положение пикселя на дисплее (нужно для корректного отображения)
-            int newX = x + pgm_read_byte(font) * letterInLine;
-            int newY = y + pgm_read_byte(font + 1) * line;
-            // Перебор всех возможных символов в шрифте
-            for (int i = 4; i < (4 + pgm_read_byte(font + 3)); i++)
-            {
-                if ((int)letters[letterID] == pgm_read_byte(font + i))
-                {
-                    charPos = i - 4;
-                    break;
-                }
-            }
-            // Установка необходимого региона откуда нужно брать изображение символа
-            int offset = 4 + pgm_read_byte(font + 3) + (oneCharSize * charPos);
-            for (int i = offset; i < (offset + oneCharSize); i++)
-            {
-                character[i - offset] = pgm_read_byte(font + i);
-            }
+            Serial.write(pgm_read_byte(font + 4 + i));
+        }
+        Serial.println();
+    }
 
-            // Вывод символа на экран
-            display.drawBitmap(newX, newY, character, pgm_read_byte(font + 0), pgm_read_byte(font + 1), color);
-
-            letterInLine++;
+    // Тут автор явно перепил шампанского под новый год и решил, что вывод массива на дисплей для откладки - отличная идея
+    void drawArray()
+    {
+        for (int fuckshit = 0; fuckshit < 8; fuckshit++)
+        {
+            display.clearDisplay();
+            for (int i = 0; i < 1024; i++)
+            {
+                tmpdata[0] = pgm_read_byte(font + i + fuckshit * 1024);
+                display.drawBitmap(
+                    (i / 64) * 8,
+                    i % 64,
+                    tmpdata,
+                    8, 1, 1);
+            }
+            display.display();
+            delay(500);
         }
     }
 
-    static void drawTextFormated(Adafruit_SSD1306 display, int x1, int y1, int x2, int y2, const uint8_t *font, char *letters, int type = 0, int color = 1)
+    void drawChar(int16_t x, int16_t y, char character, uint8_t color = 1)
     {
-        int regionWidth = x2 - x1;
-        int regionHeight = y2 - y1;
-
-        int maxSymbolsPerLine = 0;
-        int symbolsInLine = 0;
-        int lines = 1;
-        for (int letterID = 0; letterID < strlen(letters); letterID++)
+        // Перебор всех символов
+        // В случае нахождения нужного символа - вывод на экран
+        for (uint8_t characterInArray = 0; characterInArray < countCharacters; characterInArray++)
         {
-            if ((int)letters[letterID] == '\n')
+            if (character == pgm_read_byte(font + 4 + characterInArray))
             {
-                symbolsInLine=0;
-                lines++;
-            }
-            symbolsInLine++;
-            if(symbolsInLine>maxSymbolsPerLine){
-                maxSymbolsPerLine = symbolsInLine;
+                // Перебор всех байтов символа и вывод их на экран
+                for (uint8_t byteBitmap = 0; byteBitmap < (lineWeight * charHeight); byteBitmap++)
+                {
+                    tmpdata[0] = pgm_read_byte(font + 4 + countCharacters + (lineWeight * charHeight) * characterInArray + byteBitmap);
+                    display.drawBitmap(x + (byteBitmap % lineWeight) * 8, y + byteBitmap / lineWeight, tmpdata, 8, 1, color);
+                }
+                break;
             }
         }
+    }
 
-        int textWidth = pgm_read_byte(font + 0) * maxSymbolsPerLine;
-        int textHeight = pgm_read_byte(font + 1) * lines;
-
-        double xPos = x1;
-        double yPos = y1;
-        
-
-        switch (type)
+    void drawText(int16_t x, int16_t y, char *text, uint8_t color = 1, int16_t maxStringLine = -1)
+    {
+        if (maxStringLine == -1)
         {
-        case 1:
-            xPos = (regionWidth - textWidth) / 2 + x1;
-            yPos = (regionHeight - textHeight) / 2 + y1;
-            break;
-        
-        case 2:
-            xPos = (regionWidth - textWidth) + x1;
-            yPos = (regionHeight - textHeight) / 2 + y1;
+            maxStringLine = strlen(text);
+        }
+        int16_t oldX = x;
+        for (int charNumber = 0; charNumber < maxStringLine; charNumber++)
+        {
+            if (text[charNumber] == '\n')
+            {
+                x = oldX;
+                y += charHeight;
+                continue;
+            }
+            drawChar(x, y, text[charNumber], color);
+            x += charWidth;
+        }
+    }
 
-        default:
-            yPos = (regionHeight - textHeight) / 2 + y1;
-            break;
+    void drawTextFormated(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t anchorPoint, uint8_t textPosition, char *text, uint8_t color = 1)
+    {
+        int16_t width = x2 - x1;
+        int16_t height = y2 - y1;
+
+        uint8_t lineCount = 1;
+        uint8_t maxLineSize = 0;
+
+        uint8_t thisLineSize = 0;
+        for (uint8_t characterInText = 0; characterInText < strlen(text); characterInText++)
+        {
+            if (text[characterInText] == '\n')
+            {
+                lineCount++;
+                thisLineSize = 0;
+                continue;
+            }
+            thisLineSize++;
+            if (thisLineSize > maxLineSize)
+            {
+                maxLineSize = thisLineSize;
+            }
         }
 
-        FontManager::drawText(display, (int)xPos, (int)yPos, font, letters, color);
+        int16_t widthText = maxLineSize * charWidth;
+        int16_t heightText = lineCount * charHeight;
+        int16_t startX, startY;
+
+        switch (anchorPoint)
+        {
+        case CenterTop:
+            startX = (width - widthText) / 2;
+            startY = 0;
+            break;
+        case RightTop:
+            startX = width - widthText;
+            startY = 0;
+            break;
+        case LeftCenter:
+            startX = 0;
+            startY = (height - heightText) / 2;
+            break;
+        case CenterCenter:
+            startX = (width - widthText) / 2;
+            startY = (height - heightText) / 2;
+            break;
+        case RightCenter:
+            startX = width - widthText;
+            startY = (height - heightText) / 2;
+            break;
+        case LeftBottom:
+            startX = 0;
+            startY = height - heightText;
+            break;
+        case CenterBottom:
+            startX = (width - widthText) / 2;
+            startY = height - heightText;
+            break;
+        case RightBottom:
+            startX = width - widthText;
+            startY = height - heightText;
+            break;
+        default:
+            startX = 0;
+            startY = 0;
+            break;
+        }
+        startX += x1;
+        startY += y1;
+        
+        // Для выравнивания текста по центру / правому краю
+        int16_t newX, newY;
+        int16_t thisLine = 0;
+        char strings[lineCount][maxLineSize];
+        uint16_t charsInLine[lineCount];
+        if (textPosition)
+        {
+            thisLineSize = 0;
+            for (uint8_t characterInText = 0; characterInText < strlen(text); characterInText++)
+            {
+                if (text[characterInText] == '\n')
+                {
+                    thisLine++;
+                    thisLineSize = 0;
+                    continue;
+                }
+                strings[thisLine][thisLineSize] = text[characterInText];
+                thisLineSize++;
+                charsInLine[thisLine] = thisLineSize;
+            }
+        }
+
+        switch (textPosition)
+        {
+        case Center:
+            for (uint8_t line; line < lineCount; line++)
+            {
+                newX = startX + (maxLineSize - charsInLine[line]) * charWidth / 2;
+                newY = startY + line * charHeight;
+
+                drawText(newX, newY, strings[line], color, charsInLine[line]);
+            }
+            break;
+        case Right:
+            for (uint8_t line; line < lineCount; line++)
+            {
+                newX = startX + (maxLineSize - charsInLine[line]) * charWidth;
+                newY = startY + line * charHeight;
+                drawText(newX, newY, strings[line], color, charsInLine[line]);
+            }
+            break;
+        default:
+            drawText(startX, startY, text, color);
+            break;
+        }
     }
 };

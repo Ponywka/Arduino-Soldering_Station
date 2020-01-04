@@ -10,46 +10,52 @@
 
 #include "libraries/fontController.h"
 
-#define displayWidth 128 // Ширина экрана в пикселях
-#define displayHeight 64 // Высота экрана в пикселях
+/*
+*	Дисплей
+*/
+#define displayWidth 128   // Ширина [пиксели]
+#define displayHeight 64   // Высота [пиксели]
+#define displayAddres 0x3D // Адрес дисплея
 
 Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, 4); // Библиотека дисплея
+FontController fntCtrl(display);
 
 int n = 0;
 
 void drawCopyright()
 {
+	fntCtrl.setFont(font_terminus12);
 	display.clearDisplay();
 	//display.drawBitmap(48, 26, image_github, 16, 16, 1);
 	display.drawBitmap(0, 6, image_pony, 32, 53, 1);
-	FontManager::drawTextFormated(display, 32, 0, displayWidth, displayHeight, font_terminus12, (char *)"GitHub:\n@Ponywka", 1);
+	fntCtrl.drawTextFormated(32, 0, displayWidth-1, displayHeight-1, CenterCenter, Center, "GitHub:\n@Ponywka");
 	display.display();
 }
 
 void setup()
 {
-	Serial.begin(9600);
+	Serial.begin(115200);
 	// Инициализация дисплея
-	if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3D))
-	{ // тут под ставить свой I2C адресс
+	if (!display.begin(SSD1306_SWITCHCAPVCC, displayAddres))
+	{
 		Serial.println(F("SSD1306 allocation failed"));
 		for (;;)
 			;
 	}
 
+	//fntCtrl.setFont(font_terminus12);
+	/*display.clearDisplay();
+	fntCtrl.drawTextFormated(0, 0, 127, 63, LeftTop, Right, "aaaaa\nbbb\nc");
+	display.display();*/
 	drawCopyright();
 	delay(3000);
+	//fntCtrl.setFont(font_terminus24);
 }
-
-String output = "                ";
 
 void loop()
 {
-	n++;
 	display.clearDisplay();
-	output = String(n);
-	FontManager::drawTextFormated(display, 0, 0, displayWidth, displayHeight, font_terminus24, (char *)output.c_str(), 1);
+	fntCtrl.drawTextFormated(0, 0, displayWidth, displayHeight, CenterCenter, Left, (char *)(("Frame: " + String(n)).c_str()));
 	display.display();
-	Serial.print("Frame: ");
-	Serial.println(n);
+	n++;
 }
