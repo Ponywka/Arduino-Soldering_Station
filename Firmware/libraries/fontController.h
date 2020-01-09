@@ -104,7 +104,7 @@ public:
         // В случае нахождения нужного символа - вывод на экран
         for (uint8_t characterInArray = 0; characterInArray < countCharacters; characterInArray++)
         {
-            if (character == pgm_read_byte(font + 4 + characterInArray))
+            if ((uint8_t)character == pgm_read_byte(font + 4 + characterInArray))
             {
                 // Перебор всех байтов символа и вывод их на экран
                 for (uint8_t byteBitmap = 0; byteBitmap < (lineWeight * charHeight); byteBitmap++)
