@@ -1,63 +1,55 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <GyverPID.h>
+#include "libraries/fontController.h"
 
-#include <avr/pgmspace.h>
 #include "fonts/terminus12.h"
 #include "fonts/terminus24.h"
-
-#include "images/github.h"
-#include "images/pony.h"
-
 #include "images/fan1.h"
 #include "images/fan2.h"
 #include "images/fan3.h"
 
-#include "libraries/fontController.h"
-
 /*
-*	Дисплей
+	Настройки
 */
+
+//	Служебные
+#define DEBUG
+
+//	Дисплей
 #define displayWidth 128   // Ширина [пиксели]
 #define displayHeight 64   // Высота [пиксели]
+#define displayResetPin -1 // Пин перезагрузки дисплея (-1 для I2C)
 #define displayAddres 0x3D // Адрес дисплея
 
-/*
-*	Термопара
-*/
-#define tempSCK 5
-#define tempCS 6
-#define tempSO 7
-#define tempTimeout 250
-#define tempProteus
+//	Термопара
+#define thermocoupleSCK 5
+#define thermocoupleCS 6
+#define thermocoupleMISO 7
+#define thermocoupleTimeout 250
+#define thermocoupleProteus
 
-int16_t temperature;
-int16_t temperatureSet;
-uint16_t tempLastMillis;
-uint16_t tempNewMillis;
+int16_t thermocoupleTemperature;
+int16_t currentTemperature;
 
-#ifdef tempProteus
-#include <Adafruit_MAX31855.h>
-Adafruit_MAX31855 temp(tempSCK, tempCS, tempSO);
+#ifdef thermocoupleProteus
+	#include <Adafruit_MAX31855.h>
+	Adafruit_MAX31855 temp(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 #else
-#include <max6675.h>
-MAX6675 temp(tempSCK, tempCS, tempSO);
+	#include <max6675.h>
+	MAX6675 temp(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 #endif
 
-Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, 4); // Библиотека дисплея
+Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, displayResetPin);
 FontController fntCtrl(display);
+GyverPID PID(5, 10, 1);
 
-int n = 0;
+uint8_t pwdSolder = 0;
+uint8_t pwdFan = 0;
 
-void drawCopyright()
-{
-	fntCtrl.setFont(font_terminus12);
-	display.clearDisplay();
-	//display.drawBitmap(48, 26, image_github, 16, 16, 1);
-	display.drawBitmap(0, 6, image_pony, 32, 53, 1);
-	fntCtrl.drawTextFormated(32, 0, displayWidth - 1, displayHeight - 1, CenterCenter, Center, (char *)"GitHub:\n@Ponywka");
-	display.display();
-}
-
+/*
+	Вспомогательные функции
+*/
 uint8_t animstate;
 void drawFan(uint16_t x, uint16_t y)
 {
@@ -70,6 +62,45 @@ void drawFan(uint16_t x, uint16_t y)
 		display.drawBitmap(x, y, image_fan3, 16, 16, 1);
 }
 
+String outString = "";
+void refreshDisplay(){
+	display.clearDisplay();
+
+	// Текущая температура
+	fntCtrl.setFont(font_terminus24);
+	outString = "";
+	outString.concat(String(thermocoupleTemperature));
+	outString.concat((char)128);
+	outString.concat("C");
+	fntCtrl.drawTextFormated(0, 16, displayWidth, displayHeight - 16, CenterCenter, Left, outString.c_str());
+	// Выбранная температура
+	outString = "";
+	outString.concat("Selected: ");
+	outString.concat(String(currentTemperature));
+	fntCtrl.setFont(font_terminus12);
+	fntCtrl.drawTextFormated(0, 0, displayWidth, 16, CenterCenter, Left, outString.c_str());
+	// Скорость вентилятора
+	drawFan(0, displayHeight - 16);
+	outString = "";
+	outString.concat("  ");
+	outString.concat(String(map(pwdFan,0,255,0,100)));
+	outString.concat("%");
+	fntCtrl.setFont(font_terminus12);
+	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, LeftCenter, Left, outString.c_str());
+	// Разогрев
+	outString = "";
+	outString.concat("Load:");
+	outString.concat(String(map(pwdSolder,0,255,0,100)));
+	outString.concat("%");
+	fntCtrl.setFont(font_terminus12);
+	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, RightCenter, Left, outString.c_str());
+
+	display.display();
+}
+
+/*
+	Основная программа
+*/
 void setup()
 {
 	Serial.begin(115200);
@@ -81,38 +112,29 @@ void setup()
 			;
 	}
 
-	//fntCtrl.setFont(font_terminus12);
-	/*display.clearDisplay();
-	fntCtrl.drawTextFormated(0, 0, 127, 63, LeftTop, Right, "aaaaa\nbbb\nc");
-	display.display();*/
-	drawCopyright();
-	delay(3000);
-	//fntCtrl.setFont(font_terminus24);
-	temperatureSet = 100;
+	pwdFan = 255;
+	currentTemperature = 100;
 }
 
+unsigned long thermocoupleOldTime, thermocoupleNewTime;
+unsigned long logOldTime, logNewTime;
 void loop()
 {
-	tempNewMillis = millis() / tempTimeout;
-	if (tempLastMillis != tempNewMillis)
+	thermocoupleNewTime = millis() / thermocoupleTimeout;
+	if (thermocoupleOldTime != thermocoupleNewTime)
 	{
-		temperature = temp.readCelsius();
-		tempLastMillis = tempNewMillis;
+		thermocoupleTemperature = temp.readCelsius();
+		thermocoupleOldTime = thermocoupleNewTime;
 	}
+	
+	PID.input = thermocoupleTemperature;
+	PID.setpoint = currentTemperature;
+	pwdSolder = PID.getResult();
+	refreshDisplay();
 
-	display.clearDisplay();
-	// Текущая температура
-	fntCtrl.setFont(font_terminus24);
-	fntCtrl.drawTextFormated(0, 16, displayWidth, displayHeight - 16, CenterCenter, Left, (char *)((String(temperature) + (char)128 + "C").c_str()));
-	// Остальное
-	fntCtrl.setFont(font_terminus12);
-	// Выбранная температура
-	fntCtrl.drawTextFormated(0, 0, displayWidth, 16, CenterCenter, Left, (char *)(("Selected: " + String(temperatureSet) + (char)128 + "C").c_str()));
-	// Скорость вентилятора
-	drawFan(0, displayHeight - 16);
-	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, LeftCenter, Left, (char *)(("  " + String(temperatureSet) + "%").c_str()));
-	// Разогрев
-	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, RightCenter, Left, (char *)(("Load:" + String(temperatureSet) + "%").c_str()));
-
-	display.display();
+	#ifdef DEBUG
+		logOldTime = logNewTime;
+		logNewTime = millis();
+		Serial.println(logNewTime - logOldTime);
+	#endif
 }

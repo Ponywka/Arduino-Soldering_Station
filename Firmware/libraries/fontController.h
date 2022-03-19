@@ -57,47 +57,6 @@ public:
         countCharacters = pgm_read_byte(font + 3);
     }
 
-    //Это типо для дебагинга. Не трогать пока не сделаем либу полностью!!!
-
-    void fontLog()
-    {
-        Serial.print("charWidth=");
-        Serial.println(charWidth);
-        Serial.print("charHeight=");
-        Serial.println(charHeight);
-        Serial.print("lineWeight=");
-        Serial.println(lineWeight);
-        Serial.print("countCharacters=");
-        Serial.println(countCharacters);
-        Serial.print("characters=");
-        // Перебор всех символов
-        for (int i = 0; i < countCharacters; i++)
-        {
-            Serial.write(pgm_read_byte(font + 4 + i));
-        }
-        Serial.println();
-    }
-
-    // Тут автор явно перепил шампанского под новый год и решил, что вывод массива на дисплей для откладки - отличная идея
-    void drawArray()
-    {
-        for (int fuckshit = 0; fuckshit < 8; fuckshit++)
-        {
-            display.clearDisplay();
-            for (int i = 0; i < 1024; i++)
-            {
-                tmpdata[0] = pgm_read_byte(font + i + fuckshit * 1024);
-                display.drawBitmap(
-                    (i / 64) * 8,
-                    i % 64,
-                    tmpdata,
-                    8, 1, 1);
-            }
-            display.display();
-            delay(500);
-        }
-    }
-
     void drawChar(int16_t x, int16_t y, char character, uint8_t color = 1)
     {
         // Перебор всех символов
@@ -117,7 +76,7 @@ public:
         }
     }
 
-    void drawText(int16_t x, int16_t y, char *text, uint8_t color = 1, int16_t maxStringLine = -1)
+    void drawText(int16_t x, int16_t y, const char *text, uint8_t color = 1, int16_t maxStringLine = -1)
     {
         if (maxStringLine == -1)
         {
@@ -137,7 +96,7 @@ public:
         }
     }
 
-    void drawTextFormated(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t anchorPoint, uint8_t textPosition, char *text, uint8_t color = 1)
+    void drawTextFormated(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint8_t anchorPoint, uint8_t textPosition, const char *text, uint8_t color = 1)
     {
         int16_t width = x2 - x1;
         int16_t height = y2 - y1;
