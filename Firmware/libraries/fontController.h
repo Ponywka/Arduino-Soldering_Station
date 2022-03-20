@@ -1,19 +1,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-/*
-    Формат шрифта:
-
-    Байт | Описание
-    -----+----------------------------------------------
-      0  | Высота одного символа в пикселях
-      1  | Ширина одного символа в пикселях
-      2  | Вес одной строки в байтах
-      3  | Количество символов
-    4-.. | Массив символов (длина задана в 3-ем байте)
-    ..-..| Массив несжатой картинки (длина до конца)
-*/
-
 enum AnchorPoint
 {
     LeftTop,
@@ -41,35 +28,36 @@ protected:
     int charHeight;           // Высота одного символа [пиксели]
     int lineWeight;           // Размер одной строки [байты]
     int countCharacters;      // Количество символов
-    uint8_t tmpdata[1] = {0}; // Костыль для вывода одного байта за который надо отрезать руки автору
-    Adafruit_SSD1306 &display;
-    uint8_t *font;
+    Adafruit_GFX &display;
+    uint8_t *fontAddress;
 
 public:
-    FontController(Adafruit_SSD1306 &disp) : display(disp){};
+    FontController(Adafruit_GFX &disp) : display(disp){};
 
     void setFont(const uint8_t *f)
     {
-        font = (uint8_t *)f;
-        charWidth = pgm_read_byte(font + 0);
-        charHeight = pgm_read_byte(font + 1);
-        lineWeight = pgm_read_byte(font + 2);
-        countCharacters = pgm_read_byte(font + 3);
+        fontAddress = (uint8_t *)f;
+        charWidth = pgm_read_byte(fontAddress + 0);
+        charHeight = pgm_read_byte(fontAddress + 1);
+        lineWeight = pgm_read_byte(fontAddress + 2);
+        countCharacters = pgm_read_byte(fontAddress + 3);
     }
 
     void drawChar(int16_t x, int16_t y, char character, uint8_t color = 1)
     {
-        // Перебор всех символов
-        // В случае нахождения нужного символа - вывод на экран
-        for (uint8_t characterInArray = 0; characterInArray < countCharacters; characterInArray++)
+        // Поиск символа
+        for (uint8_t charID = 0; charID < countCharacters; charID++)
         {
-            if ((uint8_t)character == pgm_read_byte(font + 4 + characterInArray))
+            if ((uint8_t)character == pgm_read_byte(fontAddress + 4 + charID))
             {
-                // Перебор всех байтов символа и вывод их на экран
-                for (uint8_t byteBitmap = 0; byteBitmap < (lineWeight * charHeight); byteBitmap++)
+                // Вывод символа на экран
+                for (uint16_t byteOffset = 0; byteOffset < (lineWeight * charHeight); byteOffset++)
                 {
-                    tmpdata[0] = pgm_read_byte(font + 4 + countCharacters + (lineWeight * charHeight) * characterInArray + byteBitmap);
-                    display.drawBitmap(x + (byteBitmap % lineWeight) * 8, y + byteBitmap / lineWeight, tmpdata, 8, 1, color);
+                    uint8_t outputData[1] = {0};
+                    outputData[0] = pgm_read_byte(fontAddress + 4 + countCharacters + (lineWeight * charHeight) * charID + byteOffset);
+                    int16_t newX = x + (byteOffset % lineWeight) * 8;
+                    int16_t newY = y + byteOffset / lineWeight;
+                    display.drawBitmap(newX, newY, outputData, 8, 1, color);
                 }
                 break;
             }
@@ -82,12 +70,12 @@ public:
         {
             maxStringLine = strlen(text);
         }
-        int16_t oldX = x;
+        int16_t startX = x;
         for (int charNumber = 0; charNumber < maxStringLine; charNumber++)
         {
             if (text[charNumber] == '\n')
             {
-                x = oldX;
+                x = startX;
                 y += charHeight;
                 continue;
             }
