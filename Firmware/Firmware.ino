@@ -49,8 +49,8 @@ Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, displayResetPin);
 FontController fntCtrl(display);
 GyverPID PID(PID_Kp, PID_Ki, PID_Kd);
 
-uint8_t pwdSolder = 0;
-uint8_t pwdFan = 0;
+uint16_t pwmSolder = 0;
+uint8_t pwmFan = 0;
 
 /*
 	Вспомогательные функции
@@ -88,14 +88,14 @@ void refreshDisplay(){
 	drawFan(0, displayHeight - 16);
 	outString = "";
 	outString.concat("  ");
-	outString.concat(String(map(pwdFan,0,255,0,100)));
+	outString.concat(String(map(pwmFan,0,255,0,100)));
 	outString.concat("%");
 	fntCtrl.setFont(font_terminus12);
 	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, LeftCenter, Left, outString.c_str());
 	// Разогрев
 	outString = "";
 	outString.concat("Load:");
-	outString.concat(String(map(pwdSolder,0,255,0,100)));
+	outString.concat(String(map(pwmSolder,0,1023,0,100)));
 	outString.concat("%");
 	fntCtrl.setFont(font_terminus12);
 	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, RightCenter, Left, outString.c_str());
@@ -117,7 +117,7 @@ void setup()
 			;
 	}
 
-	pwdFan = 255;
+	pwmFan = 255;
 	currentTemperature = 100;
 }
 
@@ -134,7 +134,7 @@ void loop()
 	
 	PID.input = thermocoupleTemperature;
 	PID.setpoint = currentTemperature;
-	pwdSolder = PID.getResult();
+	pwmSolder = PID.getResult();
 	refreshDisplay();
 
 	#ifdef DEBUG
