@@ -29,6 +29,11 @@
 #define thermocoupleTimeout 250
 #define thermocoupleProteus
 
+//	Настройки PID
+#define PID_Kp	20	// пропорциональный коэффициент, выходная величина будет увеличиваться пропорционально разнице входного сигнала и установки
+#define PID_Ki	40	// коэффициент интегрирующей составляющей, отвечает за накапливающуюся ошибку, позволяет сгладить пульсации и нивелировать маленькую ошибку
+#define PID_Kd	4	// коэффициент дифференциальной составляющей, отвечает за скорость изменения величины, позволяет уменьшить раскачку системы
+
 int16_t thermocoupleTemperature;
 int16_t currentTemperature;
 
@@ -42,7 +47,7 @@ int16_t currentTemperature;
 
 Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, displayResetPin);
 FontController fntCtrl(display);
-GyverPID PID(5, 10, 1);
+GyverPID PID(PID_Kp, PID_Ki, PID_Kd);
 
 uint8_t pwdSolder = 0;
 uint8_t pwdFan = 0;
