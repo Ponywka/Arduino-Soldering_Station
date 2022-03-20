@@ -34,10 +34,10 @@ int16_t currentTemperature;
 
 #ifdef thermocoupleProteus
 	#include <Adafruit_MAX31855.h>
-	Adafruit_MAX31855 temp(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
+	Adafruit_MAX31855 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 #else
 	#include <max6675.h>
-	MAX6675 temp(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
+	MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 #endif
 
 Adafruit_SSD1306 display(displayWidth, displayHeight, &Wire, displayResetPin);
@@ -123,7 +123,7 @@ void loop()
 	thermocoupleNewTime = millis() / thermocoupleTimeout;
 	if (thermocoupleOldTime != thermocoupleNewTime)
 	{
-		thermocoupleTemperature = temp.readCelsius();
+		thermocoupleTemperature = thermocouple.readCelsius();
 		thermocoupleOldTime = thermocoupleNewTime;
 	}
 	
