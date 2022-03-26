@@ -26,14 +26,14 @@
 #define displayWidth 128   // Ширина [пиксели]
 #define displayHeight 64   // Высота [пиксели]
 #define displayResetPin -1 // Пин перезагрузки дисплея (-1 для I2C)
-#define displayAddres 0x3D // Адрес дисплея
+#define displayAddres 0x3C // Адрес дисплея
 
 //	Термопара
 #define thermocoupleSCK 5
 #define thermocoupleCS 6
 #define thermocoupleMISO 7
 #define thermocoupleTimeout 250
-#define thermocoupleProteus
+// #define thermocoupleProteus
 
 //	Настройки PID
 #define PID_Kp	20	// пропорциональный коэффициент, выходная величина будет увеличиваться пропорционально разнице входного сигнала и установки
