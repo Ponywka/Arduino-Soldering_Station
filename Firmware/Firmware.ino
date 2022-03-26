@@ -17,10 +17,10 @@
 #define DEBUG
 
 //	Датчики
-#define pwmFanPin		11
 #define pwmSolderPin	10
+#define pwmFanPin		11
 #define gerconPin		12
-
+#define relayPin		13
 
 //	Дисплей
 #define displayWidth 128   // Ширина [пиксели]
@@ -57,6 +57,7 @@ GyverPID PID(PID_Kp, PID_Ki, PID_Kd);
 
 uint16_t pwmSolder = 0;
 uint8_t pwmFan = 0;
+boolean isOn = false;
 
 /*
 	Вспомогательные функции
@@ -74,6 +75,20 @@ void drawFan(uint16_t x, uint16_t y)
 }
 
 String outString = "";
+
+void menu0(){
+	// Надпись OFF
+	fntCtrl.setFont(font_terminus24);
+	fntCtrl.drawTextFormated(0, 16, displayWidth, displayHeight - 16, CenterCenter, Left, "OFF");
+	// Текущая температура
+	outString = "";
+	outString.concat("Current: ");
+	outString.concat(String(thermocoupleTemperature));
+	outString.concat((char)128);
+	outString.concat("C");
+	fntCtrl.setFont(font_terminus12);
+	fntCtrl.drawTextFormated(0, 0, displayWidth, 16, CenterCenter, Left, outString.c_str());
+}
 
 void menu1(){
 	// Текущая температура
@@ -108,15 +123,15 @@ void menu1(){
 	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, RightCenter, Left, outString.c_str());
 }
 
-void menu2(){
-	// Текущая температура
+void menu1Change(){
+	// Выбранная температура
 	fntCtrl.setFont(font_terminus24);
 	outString = "";
 	outString.concat(String(currentTemperature));
 	outString.concat((char)128);
 	outString.concat("C");
 	fntCtrl.drawTextFormated(0, 16, displayWidth, displayHeight - 16, CenterCenter, Left, outString.c_str());
-	// Выбранная температура
+	// Текущая температура
 	outString = "";
 	outString.concat("Current: ");
 	outString.concat(String(thermocoupleTemperature));
@@ -141,18 +156,52 @@ void menu2(){
 	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, RightCenter, Left, outString.c_str());
 }
 
-unsigned long TimeMenu2 = 0;
-void showTimeoutedMenu2(){
-	TimeMenu2 = millis() + 1000;
+unsigned long TimeMenu1Change = 0;
+void showTimeoutedMenu1Change(){
+	TimeMenu1Change = millis() + 1000;
 }
 
+void menu2(){
+	// Текущая скорость вентилятора
+	fntCtrl.setFont(font_terminus24);
+	outString = "";
+	outString.concat(String(map(pwmFan,0,255,0,100)));
+	outString.concat("%");
+	fntCtrl.drawTextFormated(0, 16, displayWidth, displayHeight - 16, CenterCenter, Left, outString.c_str());
+	// Текущая температура
+	outString = "";
+	outString.concat("Current: ");
+	outString.concat(String(thermocoupleTemperature));
+	outString.concat((char)128);
+	outString.concat("C");
+	fntCtrl.setFont(font_terminus12);
+	fntCtrl.drawTextFormated(0, 0, displayWidth, 16, CenterCenter, Left, outString.c_str());
+	// Разогрев
+	outString = "";
+	outString.concat("Load:");
+	outString.concat(String(map(pwmSolder,0,1023,0,100)));
+	outString.concat("%");
+	fntCtrl.setFont(font_terminus12);
+	fntCtrl.drawTextFormated(0, displayHeight - 16, displayWidth, displayHeight, RightCenter, Left, outString.c_str());
+}
+
+unsigned long TimeMenu2 = 0;
+void showTimeoutedMenu2(){
+	TimeMenu2 = millis() + 3000;
+}
 
 void refreshDisplay(){
 	display.clearDisplay();
-	if(millis() > TimeMenu2){
-		menu1();
+	if(isOn){
+		if(millis() < TimeMenu1Change){
+			menu1Change();
+		}else if(millis() < TimeMenu2){
+			menu2();
+		}else{
+			menu1();
+		}
 	}else{
-		menu2();
+		menu0();
 	}
 
 	display.display();
@@ -173,27 +222,47 @@ void encoder() {
     if (!prevA && A && failingTime) {
         pulseLen = millis() - failingTime;
         if ( pulseLen > PULSE_PIN_LEN) {
-			showTimeoutedMenu2();
-            if (B) {
-                currentTemperature += 5;
-            } else {
-                currentTemperature -= 5;
-            }
+			// Обработка поворота
+			if(isOn){
+				if(millis() < TimeMenu2){
+					showTimeoutedMenu2();
+					if (B) {
+						// Поворот по часовой
+						pwmFan += 5;
+					} else {
+						// Поворот против часовой
+						pwmFan -= 5;
+					}
+				}else{
+					showTimeoutedMenu1Change();
+					if (B) {
+						// Поворот по часовой
+						currentTemperature += 5;
+					} else {
+						// Поворот против часовой
+						currentTemperature -= 5;
+					}
+				}
+			}
         }
         failingTime = 0;
     }
     prevA = A;
 }
 
-#define count_delay  250UL
-unsigned long TimeBTN = 0;
+unsigned long encoderButtonClickTime;
 void encoder_button() {
-    /*if (TimeBTN < (millis() - count_delay)) {
-        TimeBTN = millis();
-        if (digitalRead(3) == 0) {*/
-			currentTemperature += 100;
-    /*    }
-    }*/
+    if (digitalRead(2)) {
+		if(millis() - encoderButtonClickTime < 1000){
+			// Короткое нажатиe
+			showTimeoutedMenu2();
+		}else{
+			// Длинное нажатие
+			isOn = !isOn;
+		}
+    }else{
+		encoderButtonClickTime = millis();
+	}
 }
 
 /*
@@ -232,7 +301,7 @@ void setup()
 	}
 
 	pwmFan = 255;
-	currentTemperature = 100;
+	currentTemperature = 0;
 
 	PID.setLimits(0, 1023);
 }
@@ -241,18 +310,29 @@ unsigned long thermocoupleOldTime, thermocoupleNewTime;
 unsigned long logOldTime, logNewTime;
 void loop()
 {
+	// Опрос термопары
 	thermocoupleNewTime = millis() / thermocoupleTimeout;
 	if (thermocoupleOldTime != thermocoupleNewTime)
 	{
 		thermocoupleTemperature = thermocouple.readCelsius();
 		thermocoupleOldTime = thermocoupleNewTime;
 	}
-	
-	PID.input = thermocoupleTemperature;
-	PID.setpoint = currentTemperature;
-	pwmSolder = PID.getResult();
-	//	Исправление 100% заполнения ШИМ'а
-	if(pwmSolder == 255) pwmSolder = 254;
+
+	if(isOn){
+		PID.input = thermocoupleTemperature;
+		PID.setpoint = currentTemperature;
+		pwmSolder = PID.getResult();
+		//	Исправление 100% заполнения ШИМ'а
+		if(pwmSolder == 255) pwmSolder = 254;
+	}else{
+		pwmSolder = 0;
+		if(thermocoupleTemperature > 25){
+			pwmFan = 255;
+		}else{
+			pwmFan = 0;
+		}
+	}
+
 	analogWrite(pwmFanPin, pwmFan);
 	analogWrite(pwmSolderPin, pwmSolder);
 
