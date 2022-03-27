@@ -1,4 +1,3 @@
-#include <Adafruit_GFX.h>
 #include <GyverPID.h>
 
 /*
