@@ -150,149 +150,152 @@ boolean isOn = false;
 	}
 #endif
 
-#ifdef displaySSD1306_Enabled
-	String outString = "";
-	#define STR_START outString = ""; outString.concat(
-	#define STR_CON ); outString.concat(
-	#define STR_END );
-#endif
-
-void menu0(){
-	#ifdef displayTM1637_Enabled
-		displayTM1637Buffer[0] = 0;
-		displayTM1637Buffer[1] = _O;
-		displayTM1637Buffer[2] = _F;
-		displayTM1637Buffer[3] = _F;
-	#endif
+#define MENU
+#ifdef MENU
 	#ifdef displaySSD1306_Enabled
-		// Надпись OFF
-		fntCtrl.setFont(font_terminus24);
-		fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, "OFF");
-		// Текущая температура
-		STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
-	#endif
-}
-
-void menu1(){
-	#ifdef displayTM1637_Enabled
-		displayTM1637_writeInt(thermocoupleTemperature);
-	#endif
-	#ifdef displaySSD1306_Enabled
-		// Текущая температура
-		STR_START String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
-		fntCtrl.setFont(font_terminus24);
-		fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
-		// Выбранная температура
-		STR_START "Selected: " STR_CON String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
-		// Скорость вентилятора
-		drawFan(0, displaySSD1306Height - 16);
-		STR_START "  " STR_CON String(fanSpeed) STR_CON "%" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
-		// Разогрев
-		STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
-	#endif
-}
-
-void menu1Change(){
-	#ifdef displayTM1637_Enabled
-		displayTM1637_writeInt(currentTemperature);
-		displayTM1637Buffer[0] = _C;
-	#endif
-	#ifdef displaySSD1306_Enabled
-		// Выбранная температура
-		fntCtrl.setFont(font_terminus24);
-		STR_START String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
-		fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
-		// Текущая температура
-		STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
-		// Скорость вентилятора
-		drawFan(0, displaySSD1306Height - 16);
-		STR_START "  " STR_CON String(fanSpeed) STR_CON "%" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
-		// Разогрев
-		STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
-	#endif
-}
-
-unsigned long TimeMenu1Change = 0;
-void showTimeoutedMenu1Change(){
-	TimeMenu1Change = millis() + 1000;
-};
-
-void menu2(){
-	#ifdef displayTM1637_Enabled
-		displayTM1637_writeInt(fanSpeed);
-		displayTM1637Buffer[0] = _F;
-	#endif
-	#ifdef displaySSD1306_Enabled
-		// Текущая скорость вентилятора
-		fntCtrl.setFont(font_terminus24);
-		STR_START String(fanSpeed) STR_CON "%" STR_END
-		fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
-		// Текущая температура
-		STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
-		// Разогрев
-		STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
-		fntCtrl.setFont(font_terminus12);
-		fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
-	#endif
-}
-
-unsigned long TimeMenu2 = 0;
-void showTimeoutedMenu2(){
-	TimeMenu2 = millis() + 3000;
-}
-
-#ifdef displayTM1637_Enabled
-	unsigned long displayTM1637NextUpdate = 0;
-#endif
-void refreshDisplay(){
-	#ifdef displayTM1637_Enabled
-		displayTM1637Buffer[0] = 0;
-		displayTM1637Buffer[1] = 0;
-		displayTM1637Buffer[2] = 0;
-		displayTM1637Buffer[3] = 0;
-	#endif
-	#ifdef displaySSD1306_Enabled
-		displaySSD1306.clearDisplay();
+		String outString = "";
+		#define STR_START outString = ""; outString.concat(
+		#define STR_CON ); outString.concat(
+		#define STR_END );
 	#endif
 
-	if(isOn){
-		if(millis() < TimeMenu1Change){
-			menu1Change();
-		}else if(millis() < TimeMenu2){
-			menu2();
-		}else{
-			menu1();
-		}
-	}else{
-		menu0();
+	void menu0(){
+		#ifdef displayTM1637_Enabled
+			displayTM1637Buffer[0] = 0;
+			displayTM1637Buffer[1] = _O;
+			displayTM1637Buffer[2] = _F;
+			displayTM1637Buffer[3] = _F;
+		#endif
+		#ifdef displaySSD1306_Enabled
+			// Надпись OFF
+			fntCtrl.setFont(font_terminus24);
+			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, "OFF");
+			// Текущая температура
+			STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
+		#endif
+	}
+
+	void menu1(){
+		#ifdef displayTM1637_Enabled
+			displayTM1637_writeInt(thermocoupleTemperature);
+		#endif
+		#ifdef displaySSD1306_Enabled
+			// Текущая температура
+			STR_START String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			fntCtrl.setFont(font_terminus24);
+			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
+			// Выбранная температура
+			STR_START "Selected: " STR_CON String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
+			// Скорость вентилятора
+			drawFan(0, displaySSD1306Height - 16);
+			STR_START "  " STR_CON String(fanSpeed) STR_CON "%" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
+			// Разогрев
+			STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
+		#endif
+	}
+
+	void menu1Change(){
+		#ifdef displayTM1637_Enabled
+			displayTM1637_writeInt(currentTemperature);
+			displayTM1637Buffer[0] = _C;
+		#endif
+		#ifdef displaySSD1306_Enabled
+			// Выбранная температура
+			fntCtrl.setFont(font_terminus24);
+			STR_START String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
+			// Текущая температура
+			STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
+			// Скорость вентилятора
+			drawFan(0, displaySSD1306Height - 16);
+			STR_START "  " STR_CON String(fanSpeed) STR_CON "%" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
+			// Разогрев
+			STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
+		#endif
+	}
+
+	unsigned long TimeMenu1Change = 0;
+	void showTimeoutedMenu1Change(){
+		TimeMenu1Change = millis() + 1000;
+	};
+
+	void menu2(){
+		#ifdef displayTM1637_Enabled
+			displayTM1637_writeInt(fanSpeed);
+			displayTM1637Buffer[0] = _F;
+		#endif
+		#ifdef displaySSD1306_Enabled
+			// Текущая скорость вентилятора
+			fntCtrl.setFont(font_terminus24);
+			STR_START String(fanSpeed) STR_CON "%" STR_END
+			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
+			// Текущая температура
+			STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
+			// Разогрев
+			STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
+			fntCtrl.setFont(font_terminus12);
+			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
+		#endif
+	}
+
+	unsigned long TimeMenu2 = 0;
+	void showTimeoutedMenu2(){
+		TimeMenu2 = millis() + 3000;
 	}
 
 	#ifdef displayTM1637_Enabled
-		if(displayTM1637NextUpdate < millis()){
-			displayTM1637.displayByte(displayTM1637Buffer);
-			displayTM1637NextUpdate = millis() + displaySSD1306RefreshRate;
+		unsigned long displayTM1637NextUpdate = 0;
+	#endif
+	void refreshDisplay(){
+		#ifdef displayTM1637_Enabled
+			displayTM1637Buffer[0] = 0;
+			displayTM1637Buffer[1] = 0;
+			displayTM1637Buffer[2] = 0;
+			displayTM1637Buffer[3] = 0;
+		#endif
+		#ifdef displaySSD1306_Enabled
+			displaySSD1306.clearDisplay();
+		#endif
+
+		if(isOn){
+			if(millis() < TimeMenu1Change){
+				menu1Change();
+			}else if(millis() < TimeMenu2){
+				menu2();
+			}else{
+				menu1();
+			}
+		}else{
+			menu0();
 		}
-	#endif
-	#ifdef displaySSD1306_Enabled
-		displaySSD1306.display();
-	#endif
-}
+
+		#ifdef displayTM1637_Enabled
+			if(displayTM1637NextUpdate < millis()){
+				displayTM1637.displayByte(displayTM1637Buffer);
+				displayTM1637NextUpdate = millis() + displaySSD1306RefreshRate;
+			}
+		#endif
+		#ifdef displaySSD1306_Enabled
+			displaySSD1306.display();
+		#endif
+	}
+#endif
 
 #define PULSE_PIN_LEN 1
 byte prevA = 0;
