@@ -150,10 +150,12 @@ boolean isOn = false;
 	}
 #endif
 
-String outString = "";
-#define STR_START outString = ""; outString.concat(
-#define STR_CON ); outString.concat(
-#define STR_END );
+#ifdef displaySSD1306_Enabled
+	String outString = "";
+	#define STR_START outString = ""; outString.concat(
+	#define STR_CON ); outString.concat(
+	#define STR_END );
+#endif
 
 void menu0(){
 	#ifdef displayTM1637_Enabled
