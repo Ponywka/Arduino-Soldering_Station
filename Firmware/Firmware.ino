@@ -1,47 +1,48 @@
-#include <GyverPID.h>
-
 /*
 	Настройки
 */
 
-//	Служебные
+//	[Служебные]
 #define DEBUG
+// #define PROTEUS_MODE
 
-//	Датчики
+//	[Датчики]
 #define gerconPin		12
 #define relayPin		13
 
-//	Дисплей
+//	[Дисплей]
 // Требуется раскомментировать один из дисплеев
 // Можно использовать и сразу два, если конечно-же будет место :)
-#define displaySSD1306_Enabled	// OLED дисплей
+
+// OLED дисплей
+#define displaySSD1306_Enabled
 #ifdef displaySSD1306_Enabled
 	#define displaySSD1306Width 128   // Ширина [пиксели]
 	#define displaySSD1306Height 64   // Высота [пиксели]
 	#define displaySSD1306ResetPin -1 // Пин перезагрузки дисплея (-1 для I2C)
-	#define displaySSD1306Addres 0x3C // Адрес дисплея
+	#define displaySSD1306Address 0x3C // Адрес дисплея
 #endif
 
-//#define displayTM1637_Enabled	// 7-ми сегментный дисплей
+// 7-ми сегментный дисплей
+// #define displayTM1637_Enabled
 #ifdef displayTM1637_Enabled
 	#define displaySSD1306CLKPin 14 // A2
 	#define displaySSD1306DIOPin 15 // A3
 	#define displaySSD1306RefreshRate	100;
 #endif
 
-//	Термопара
+//	[Термопара]
 #define thermocoupleSCK 5
 #define thermocoupleCS 6
 #define thermocoupleMISO 7
 #define thermocoupleTimeout 250
-// #define thermocoupleProteus
 
-//	Настройки PID
-#define PID_Kp	1	// пропорциональный коэффициент, выходная величина будет увеличиваться пропорционально разнице входного сигнала и установки
-#define PID_Ki	0	// коэффициент интегрирующей составляющей, отвечает за накапливающуюся ошибку, позволяет сгладить пульсации и нивелировать маленькую ошибку
-#define PID_Kd	0	// коэффициент дифференциальной составляющей, отвечает за скорость изменения величины, позволяет уменьшить раскачку системы
+//	[Настройки PID]
+#define PID_Kp	1
+#define PID_Ki	0
+#define PID_Kd	0
 
-//	Настройки PWM
+//	[Настройки PWM]
 // Паяльник (0-1023)
 #define pwmSolderMin 0
 #define pwmSolderMax 1023
@@ -49,16 +50,20 @@
 #define pwmFanMin 128
 #define pwmFanMax 255
 
+/*
+	Основная программа
+*/
+#include <GyverPID.h>
 int fanSpeed = 100;
 int thermocoupleTemperature;
 int currentTemperature = 100;
 
-#ifdef thermocoupleProteus
-	#include <Adafruit_MAX31855.h>
-	Adafruit_MAX31855 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
-#else
+#ifndef PROTEUS_MODE
 	#include <max6675.h>
 	MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
+#else
+	#include <Adafruit_MAX31855.h>
+	Adafruit_MAX31855 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 #endif
 
 #ifdef displaySSD1306_Enabled
@@ -85,9 +90,6 @@ uint16_t pwmSolder = 0;
 uint8_t pwmFan = 0;
 boolean isOn = false;
 
-/*
-	Вспомогательные функции
-*/
 #ifdef displaySSD1306_Enabled
 	uint8_t animstate;
 	void drawFan(uint16_t x, uint16_t y)
@@ -365,9 +367,30 @@ void encoder_button() {
 	}
 }
 
-/*
-	Основная программа
-*/
+unsigned long frametimeOldTime, frametimeNewTime, frametime;
+#ifdef DEBUG
+	void debugPrintHeader(){
+		Serial.print("frametime, ");
+		Serial.print("pwmSolder, ");
+		Serial.print("pwmFan, ");
+		Serial.print("thermocoupleTemperature, ");
+		Serial.println("currentTemperature");
+	}
+
+	#define SERIAL_PRINT Serial.print(
+	#define SERIAL_NEXT ); Serial.print(" "); Serial.print(
+	#define SERIAL_END ); Serial.println("");
+
+	void debugPrintData(){
+		SERIAL_PRINT frametime
+		SERIAL_NEXT pwmSolder
+		SERIAL_NEXT pwmFan
+		SERIAL_NEXT thermocoupleTemperature
+		SERIAL_NEXT currentTemperature
+		SERIAL_END
+	}
+#endif
+
 void setup()
 {
 	// ШИМ паяльника | D9 и D10 - 7.5 Гц 10bit
@@ -395,21 +418,19 @@ void setup()
 
 	#ifdef DEBUG
 		Serial.begin(9600);
-
-		Serial.print("renderTime, ");
-		Serial.print("pwmSolder, ");
-		Serial.print("pwmFan, ");
-		Serial.print("thermocoupleTemperature, ");
-		Serial.println("currentTemperature");
+		debugPrintHeader();	
 	#endif
 
+	// Инициализация дисплея
 	#ifdef displayTM1637_Enabled
 		displayTM1637.clear();
 		displayTM1637.brightness(7);
 	#endif
 	#ifdef displaySSD1306_Enabled
-		// Инициализация дисплея
-		if (!displaySSD1306.begin(SSD1306_SWITCHCAPVCC, displaySSD1306Addres))
+		#ifdef PROTEUS_MODE
+			#define displaySSD1306Address 0x3D
+		#endif
+		if (!displaySSD1306.begin(SSD1306_SWITCHCAPVCC, displaySSD1306Address))
 		{
 			#ifdef DEBUG
 				Serial.println(F("SSD1306 allocation failed"));
@@ -426,7 +447,6 @@ void setup()
 }
 
 unsigned long thermocoupleOldTime, thermocoupleNewTime;
-unsigned long logOldTime, logNewTime;
 void loop()
 {
 	// Опрос термопары
@@ -452,6 +472,8 @@ void loop()
 		}
 	}
 
+	digitalWrite(relayPin, isOn);
+
 	// Запись значений в таймер (ШИМ)
 	// analogWrite(...) имеет проблемы на 10bit-шим
 	_SFR_BYTE(TCCR1A) |= _BV(COM1B1);
@@ -460,34 +482,13 @@ void loop()
 	_SFR_BYTE(TCCR2A) |= _BV(COM2A1);
 	OCR2A = pwmFan;
 
-	digitalWrite(relayPin, isOn);
-
-	analogWrite(0,0);
-
 	refreshDisplay();
 
+	frametimeOldTime = frametimeNewTime;
+	frametimeNewTime = millis();
+	frametime = frametimeNewTime - frametimeOldTime;
+
 	#ifdef DEBUG
-		// renderTime
-		logOldTime = logNewTime;
-		logNewTime = millis();
-		Serial.print(logNewTime - logOldTime);
-
-		Serial.print(" ");
-		// pwmSolder
-		Serial.print(pwmSolder);
-
-		Serial.print(" ");
-		// pwmFan
-		Serial.print(pwmFan);
-
-		Serial.print(" ");
-		// thermocoupleTemperature
-		Serial.print(thermocoupleTemperature);
-
-		Serial.print(" ");
-		// currentTemperature
-		Serial.print(currentTemperature);
-
-		Serial.println("");
+		debugPrintData();
 	#endif
 }
