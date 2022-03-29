@@ -52,6 +52,8 @@
 
 //	[Остальные настройки]
 #define temperatureEmergencyStop 450
+#define temperatureWhenOffFanOff 75
+#define temperatureWhenOffFanOn  100
 
 /*
 	Основная программа
@@ -92,6 +94,11 @@ GyverPID PID(PID_Kp, PID_Ki, PID_Kd);
 uint16_t pwmSolder = 0;
 uint8_t pwmFan = 0;
 boolean isOn = false;
+boolean offFanComplete = false;
+void offHeat(){
+	isOn = false;
+	offFanComplete = false;
+}
 
 #ifdef displaySSD1306_Enabled
 	uint8_t animstate;
@@ -363,7 +370,11 @@ void encoder_button() {
 			showTimeoutedMenu2();
 		}else{
 			// Длинное нажатие
-			isOn = !isOn;
+			if(isOn){
+				offHeat();
+			}else{
+				isOn = true;
+			}
 		}
     }else{
 		encoderButtonClickTime = millis();
@@ -462,7 +473,7 @@ void loop()
 
 	// Аварийное выключение
 	if(thermocoupleTemperature > temperatureEmergencyStop){
-		isOn = false;
+		offHeat();
 	}
 
 	if(isOn){
@@ -472,11 +483,17 @@ void loop()
 		pwmFan = map(fanSpeed, 0, 100, pwmFanMin, pwmFanMax);
 	}else{
 		pwmSolder = 0;
-		if(thermocoupleTemperature > 25){
-			// Охлаждение фена
-			pwmFan = pwmFanMax;
+		pwmFan = 0;
+
+		if(thermocoupleTemperature > temperatureWhenOffFanOff){
+			if(thermocoupleTemperature > temperatureWhenOffFanOn){
+				offFanComplete = false;
+			}
+			if(!offFanComplete){
+				pwmFan = pwmFanMax;
+			}
 		}else{
-			pwmFan = 0;
+			offFanComplete = true;
 		}
 	}
 
