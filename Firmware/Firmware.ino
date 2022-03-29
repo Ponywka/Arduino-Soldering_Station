@@ -50,6 +50,9 @@
 #define pwmFanMin 128
 #define pwmFanMax 255
 
+//	[Остальные настройки]
+#define temperatureEmergencyStop 450
+
 /*
 	Основная программа
 */
@@ -455,6 +458,11 @@ void loop()
 	{
 		thermocoupleTemperature = thermocouple.readCelsius();
 		thermocoupleOldTime = thermocoupleNewTime;
+	}
+
+	// Аварийное выключение
+	if(thermocoupleTemperature > temperatureEmergencyStop){
+		isOn = false;
 	}
 
 	if(isOn){
