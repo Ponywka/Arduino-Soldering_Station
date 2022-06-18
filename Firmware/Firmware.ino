@@ -38,14 +38,14 @@
 #define thermocoupleTimeout 250
 
 //	[Настройки PID]
-#define PID_Kp	1
-#define PID_Ki	0
+#define PID_Kp	15
+#define PID_Ki	1
 #define PID_Kd	0
 
 //	[Настройки PWM]
 // Паяльник (0-1023)
 #define pwmSolderMin 0
-#define pwmSolderMax 1023
+#define pwmSolderMax 500
 // Вентилятор (0-255)
 #define pwmFanMin 128
 #define pwmFanMax 255
@@ -242,7 +242,7 @@ void offHeat(){
 
 	unsigned long TimeMenu1Change = 0;
 	void showTimeoutedMenu1Change(){
-		TimeMenu1Change = millis() + 1000;
+		TimeMenu1Change = millis() + 500;
 	};
 
 	void menu2(){
@@ -268,7 +268,7 @@ void offHeat(){
 
 	unsigned long TimeMenu2 = 0;
 	void showTimeoutedMenu2(){
-		TimeMenu2 = millis() + 3000;
+		TimeMenu2 = millis() + 1000;
 	}
 
 	#ifdef displayTM1637_Enabled
@@ -455,7 +455,7 @@ void setup()
 	#endif
 
 	pwmFan = 255;
-	currentTemperature = 0;
+	currentTemperature = 250;
 
 	PID.setLimits(pwmSolderMin, pwmSolderMax);
 }
