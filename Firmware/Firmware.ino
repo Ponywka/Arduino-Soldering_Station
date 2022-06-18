@@ -50,6 +50,10 @@
 #define pwmFanMin 128
 #define pwmFanMax 255
 
+//	[Коррекция температуры]
+#define temperatureCoefficient (300 / 270) // Коэффициент
+#define temperatureOffset 0 // Смещение температуры
+
 //	[Остальные настройки]
 #define temperatureEmergencyStop 450
 #define temperatureWhenOffFanOff 75
@@ -485,7 +489,7 @@ void loop()
 	thermocoupleNewTime = millis() / thermocoupleTimeout;
 	if (thermocoupleOldTime != thermocoupleNewTime)
 	{
-		thermocoupleTemperature = thermocouple.readCelsius();
+		thermocoupleTemperature = thermocouple.readCelsius() * temperatureCoefficient + temperatureOffset;
 		thermocoupleOldTime = thermocoupleNewTime;
 	}
 
