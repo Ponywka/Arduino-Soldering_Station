@@ -405,6 +405,7 @@ unsigned long frametimeOldTime, frametimeNewTime, frametime;
 	}
 #endif
 
+bool gerconActivated = false;
 void setup()
 {
 	// ШИМ паяльника | D9 и D10 - 7.5 Гц 10bit
@@ -458,11 +459,28 @@ void setup()
 	currentTemperature = 250;
 
 	PID.setLimits(pwmSolderMin, pwmSolderMax);
+
+	gerconActivated = !digitalRead(gerconPin);
 }
 
 unsigned long thermocoupleOldTime, thermocoupleNewTime;
+bool gerconLast = false;
+bool gerconCurrent = false;
 void loop()
 {
+	gerconCurrent = !digitalRead(gerconPin);
+	if (gerconCurrent != gerconLast) {
+		if (!gerconCurrent) {
+			if (gerconActivated) {
+				isOn = true;
+			}
+		} else {
+			gerconActivated = true;
+			offHeat();
+		}
+		gerconLast = gerconCurrent;
+	}
+
 	// Опрос термопары
 	thermocoupleNewTime = millis() / thermocoupleTimeout;
 	if (thermocoupleOldTime != thermocoupleNewTime)
