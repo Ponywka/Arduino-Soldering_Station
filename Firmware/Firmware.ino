@@ -4,7 +4,6 @@
 
 //	[Служебные]
 // #define DEBUG
-// #define PROTEUS_MODE
 
 //	[Датчики]
 #define gerconPin		12
@@ -69,13 +68,8 @@ int fanSpeed = 100;
 long thermocoupleTemperature;
 int currentTemperature = 100;
 
-#ifndef PROTEUS_MODE
-	#include <max6675.h>
-	MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
-#else
-	#include <Adafruit_MAX31855.h>
-	Adafruit_MAX31855 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
-#endif
+#include <max6675.h>
+MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 
 #ifdef displaySSD1306_Enabled
 	#include <Adafruit_SSD1306.h>
@@ -455,9 +449,6 @@ void setup()
 		displayTM1637.brightness(7);
 	#endif
 	#ifdef displaySSD1306_Enabled
-		#ifdef PROTEUS_MODE
-			#define displaySSD1306Address 0x3D
-		#endif
 		if (!displaySSD1306.begin(SSD1306_SWITCHCAPVCC, displaySSD1306Address))
 		{
 			#ifdef DEBUG
