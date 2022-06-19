@@ -58,6 +58,7 @@
 #define temperatureEmergencyStop 450
 #define temperatureWhenOffFanOff 75
 #define temperatureWhenOffFanOn  100
+#define encoderLongButtonTime    500
 
 /*
 	Основная программа
@@ -368,19 +369,26 @@ void encoder() {
     prevA = A;
 }
 
+// Короткое нажатиe
+void encoder_button_shortClick() {
+	showTimeoutedMenu2();
+}
+
+// Длинное нажатие
+void encoder_button_longClick() {
+	if(isOn){
+		offHeat();
+	}else{
+		isOn = true;
+	}
+}
+
 unsigned long encoderButtonClickTime;
 void encoder_button() {
     if (digitalRead(2)) {
-		if(millis() - encoderButtonClickTime < 1000){
-			// Короткое нажатиe
-			showTimeoutedMenu2();
-		}else{
-			// Длинное нажатие
-			if(isOn){
-				offHeat();
-			}else{
-				isOn = true;
-			}
+		if(millis() - encoderButtonClickTime < encoderLongButtonTime){
+			encoderButtonClickTime = 0;
+			encoder_button_shortClick();
 		}
     }else{
 		encoderButtonClickTime = millis();
@@ -475,6 +483,14 @@ bool gerconLast = false;
 bool gerconCurrent = false;
 void loop()
 {
+    // Encoder
+    // TODO: Remove all spaghetti code
+    // IDK why, but I can't use attachInterrupt inside class without static method
+	if (encoderButtonClickTime != 0 && millis() - encoderButtonClickTime >= encoderLongButtonTime){
+		encoderButtonClickTime = 0;
+		encoder_button_longClick();
+	}	
+
 	gercon.tick();
 	gerconCurrent = gercon.getState();
 	if (gerconCurrent != gerconLast) {
