@@ -51,8 +51,7 @@
 #define pwmFanMax 255
 
 //	[Коррекция температуры]
-#define temperatureCoefficient (300 / 270) // Коэффициент
-#define temperatureOffset 0 // Смещение температуры
+#define correctionFormula thermocoupleTemperature * 17 / 20 + 20
 
 //	[Остальные настройки]
 #define temperatureEmergencyStop 450
@@ -64,7 +63,7 @@
 */
 #include <GyverPID.h>
 int fanSpeed = 100;
-int thermocoupleTemperature;
+long thermocoupleTemperature;
 int currentTemperature = 100;
 
 #ifndef PROTEUS_MODE
@@ -489,7 +488,8 @@ void loop()
 	thermocoupleNewTime = millis() / thermocoupleTimeout;
 	if (thermocoupleOldTime != thermocoupleNewTime)
 	{
-		thermocoupleTemperature = thermocouple.readCelsius() * temperatureCoefficient + temperatureOffset;
+		thermocoupleTemperature = thermocouple.readCelsius();
+		thermocoupleTemperature = correctionFormula;
 		thermocoupleOldTime = thermocoupleNewTime;
 	}
 
