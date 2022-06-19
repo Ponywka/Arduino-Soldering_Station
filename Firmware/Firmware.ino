@@ -389,8 +389,8 @@ void encoder_button() {
 	}
 }
 
-unsigned long frametimeOldTime, frametimeNewTime, frametime;
 #ifdef DEBUG
+	unsigned long frametimeOldTime, frametimeNewTime, frametime;
 	void debugPrintHeader(){
 		Serial.print("frametime, ");
 		Serial.print("pwmSolder, ");
@@ -548,11 +548,10 @@ void loop()
 
 	refreshDisplay();
 
-	frametimeOldTime = frametimeNewTime;
-	frametimeNewTime = millis();
-	frametime = frametimeNewTime - frametimeOldTime;
-
 	#ifdef DEBUG
+		frametimeOldTime = frametimeNewTime;
+		frametimeNewTime = millis();
+		frametime = frametimeNewTime - frametimeOldTime;
 		debugPrintData();
 	#endif
 }
