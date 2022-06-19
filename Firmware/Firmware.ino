@@ -63,6 +63,7 @@
 	Основная программа
 */
 #include <GyverPID.h>
+#include "libraries/gercon.h"
 int fanSpeed = 100;
 long thermocoupleTemperature;
 int currentTemperature = 100;
@@ -94,6 +95,7 @@ int currentTemperature = 100;
 	GyverTM1637 displayTM1637(displaySSD1306CLKPin, displaySSD1306DIOPin);
 #endif
 GyverPID PID(PID_Kp, PID_Ki, PID_Kd);
+Gercon gercon(gerconPin);
 
 uint16_t pwmSolder = 0;
 uint8_t pwmFan = 0;
@@ -428,7 +430,6 @@ void setup()
 	pinMode(11, OUTPUT);
 
 	// Настройка переменных пинов I/O
-	pinMode(gerconPin, INPUT);
 	pinMode(relayPin, OUTPUT);
 
 	// Апаратные прерывания для энкодера
@@ -465,7 +466,7 @@ void setup()
 	PID.setLimits(pwmSolderMin, pwmSolderMax);
 	PID.setDt(PID_Td);
 
-	gerconActivated = !digitalRead(gerconPin);
+	gerconActivated = gercon.getState();
 }
 
 unsigned long thermocoupleOldTime, thermocoupleNewTime;
@@ -474,7 +475,8 @@ bool gerconLast = false;
 bool gerconCurrent = false;
 void loop()
 {
-	gerconCurrent = !digitalRead(gerconPin);
+	gercon.tick();
+	gerconCurrent = gercon.getState();
 	if (gerconCurrent != gerconLast) {
 		if (!gerconCurrent) {
 			if (gerconActivated) {
