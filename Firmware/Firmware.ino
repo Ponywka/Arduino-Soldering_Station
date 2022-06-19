@@ -186,7 +186,7 @@ void offHeat(){
 			fntCtrl.setFont(font_terminus24);
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, "OFF");
 			// Текущая температура
-			STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			STR_START "Current: " STR_CON String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
 		#endif
@@ -198,7 +198,7 @@ void offHeat(){
 		#endif
 		#ifdef displaySSD1306_Enabled
 			// Текущая температура
-			STR_START String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			STR_START String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
 			fntCtrl.setFont(font_terminus24);
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
 			// Выбранная температура
@@ -211,7 +211,7 @@ void offHeat(){
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
 			// Разогрев
-			STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
+			STR_START "Load:" STR_CON String((int)map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
 		#endif
@@ -228,7 +228,7 @@ void offHeat(){
 			STR_START String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
 			// Текущая температура
-			STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			STR_START "Current: " STR_CON String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
 			// Скорость вентилятора
@@ -237,7 +237,7 @@ void offHeat(){
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
 			// Разогрев
-			STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
+			STR_START "Load:" STR_CON String((int)map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
 		#endif
@@ -259,11 +259,11 @@ void offHeat(){
 			STR_START String(fanSpeed) STR_CON "%" STR_END
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
 			// Текущая температура
-			STR_START "Current: " STR_CON String(thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+			STR_START "Current: " STR_CON String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
 			// Разогрев
-			STR_START "Load:" STR_CON String(map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
+			STR_START "Load:" STR_CON String((int)map(pwmSolder,0,1023,0,100)) STR_CON "%" STR_END
 			fntCtrl.setFont(font_terminus12);
 			fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
 		#endif
