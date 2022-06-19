@@ -55,18 +55,20 @@
 
 //	[Остальные настройки]
 #define temperatureEmergencyStop 450
-#define temperatureWhenOffFanOff 75
-#define temperatureWhenOffFanOn  100
+#define temperatureOffStateFanOff 75
+#define temperatureOffStateFanOn  100
 #define encoderLongButtonTime    500
+#define defaultTemperature       200
+#define defaultFanSpeed          50
 
 /*
 	Основная программа
 */
 #include <GyverPID.h>
 #include "libraries/gercon.h"
-int fanSpeed = 100;
+int fanSpeed = defaultFanSpeed;
 long thermocoupleTemperature;
-int currentTemperature = 100;
+int currentTemperature = defaultTemperature;
 
 #include <max6675.h>
 MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
@@ -92,10 +94,10 @@ MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 GyverPID PID(PID_Kp, PID_Ki, PID_Kd);
 Gercon gercon(gerconPin);
 
-uint16_t pwmSolder = 0;
-uint8_t pwmFan = 0;
-boolean isOn = false;
-boolean offFanComplete = false;
+uint16_t pwmSolder;
+uint8_t pwmFan;
+boolean isOn;
+boolean offFanComplete;
 void offHeat(){
 	isOn = false;
 	offFanComplete = false;
@@ -241,7 +243,7 @@ void offHeat(){
 		#endif
 	}
 
-	unsigned long TimeMenu1Change = 0;
+	unsigned long TimeMenu1Change;
 	void showTimeoutedMenu1Change(){
 		TimeMenu1Change = millis() + 500;
 	};
@@ -267,7 +269,7 @@ void offHeat(){
 		#endif
 	}
 
-	unsigned long TimeMenu2 = 0;
+	unsigned long TimeMenu2;
 	void showTimeoutedMenu2(){
 		TimeMenu2 = millis() + 1500;
 	}
@@ -311,10 +313,8 @@ void offHeat(){
 #endif
 
 #define PULSE_PIN_LEN 1
-byte prevA = 0;
-byte B = 0;
-unsigned long failingTime = 0;
-unsigned long pulseLen = 0;
+byte prevA, B;
+unsigned long failingTime, pulseLen;
 void encoder() {
     byte A = digitalRead(3);
     if (prevA && !A)
@@ -421,7 +421,7 @@ void encoder_button_tick() {
 	}
 #endif
 
-bool gerconActivated = false;
+bool gerconActivated;
 void setup()
 {
 	// ШИМ паяльника | D9 и D10 - 7.5 Гц 10bit
@@ -467,19 +467,14 @@ void setup()
 		}
 	#endif
 
-	pwmFan = 255;
-	currentTemperature = 250;
-
 	PID.setLimits(pwmSolderMin, pwmSolderMax);
 	PID.setDt(PID_Td);
 
 	gerconActivated = gercon.getState();
 }
 
-unsigned long thermocoupleOldTime, thermocoupleNewTime;
-unsigned long pidOldTime, pidNewTime;
-bool gerconLast = false;
-bool gerconCurrent = false;
+unsigned long thermocoupleOldTime, thermocoupleNewTime, pidOldTime, pidNewTime;
+bool gerconLast, gerconCurrent;
 void loop()
 {
 	encoder_button_tick();
@@ -525,8 +520,8 @@ void loop()
 		pwmSolder = 0;
 		pwmFan = 0;
 
-		if(thermocoupleTemperature > temperatureWhenOffFanOff){
-			if(thermocoupleTemperature > temperatureWhenOffFanOn){
+		if(thermocoupleTemperature > temperatureOffStateFanOff){
+			if(thermocoupleTemperature > temperatureOffStateFanOn){
 				offFanComplete = false;
 			}
 			if(!offFanComplete){
