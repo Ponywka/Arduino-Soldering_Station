@@ -389,6 +389,14 @@ void encoder_button() {
 	}
 }
 
+void encoder_button_tick() {
+    // IDK why, but I can't use attachInterrupt inside class without static method
+	if (encoderButtonClickTime != 0 && millis() - encoderButtonClickTime >= encoderLongButtonTime){
+		encoderButtonClickTime = 0;
+		encoder_button_longClick();
+	}	
+}
+
 #ifdef DEBUG
 	unsigned long frametimeOldTime, frametimeNewTime, frametime;
 	void debugPrintHeader(){
@@ -474,14 +482,7 @@ bool gerconLast = false;
 bool gerconCurrent = false;
 void loop()
 {
-    // Encoder
-    // TODO: Remove all spaghetti code
-    // IDK why, but I can't use attachInterrupt inside class without static method
-	if (encoderButtonClickTime != 0 && millis() - encoderButtonClickTime >= encoderLongButtonTime){
-		encoderButtonClickTime = 0;
-		encoder_button_longClick();
-	}	
-
+	encoder_button_tick();
 	gercon.tick();
 	gerconCurrent = gercon.getState();
 	if (gerconCurrent != gerconLast) {
