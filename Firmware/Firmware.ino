@@ -3,7 +3,7 @@
 */
 
 //	[Служебные]
-#define DEBUG
+// #define DEBUG
 // #define PROTEUS_MODE
 
 //	[Датчики]
