@@ -271,7 +271,7 @@ void offHeat(){
 
 	unsigned long TimeMenu2 = 0;
 	void showTimeoutedMenu2(){
-		TimeMenu2 = millis() + 1000;
+		TimeMenu2 = millis() + 1500;
 	}
 
 	#ifdef displayTM1637_Enabled
