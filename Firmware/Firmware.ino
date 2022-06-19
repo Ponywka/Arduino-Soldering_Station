@@ -37,10 +37,11 @@
 #define thermocoupleMISO 7
 #define thermocoupleTimeout 250
 
-//	[Настройки PID]
-#define PID_Kp	15
-#define PID_Ki	1
-#define PID_Kd	0
+//	[Настройки PID] // Ku = 160
+#define PID_Kp	96
+#define PID_Ki	12
+#define PID_Kd	192
+#define PID_Td	500
 
 //	[Настройки PWM]
 // Паяльник (0-1023)
@@ -462,11 +463,13 @@ void setup()
 	currentTemperature = 250;
 
 	PID.setLimits(pwmSolderMin, pwmSolderMax);
+	PID.setDt(PID_Td);
 
 	gerconActivated = !digitalRead(gerconPin);
 }
 
 unsigned long thermocoupleOldTime, thermocoupleNewTime;
+unsigned long pidOldTime, pidNewTime;
 bool gerconLast = false;
 bool gerconCurrent = false;
 void loop()
@@ -499,9 +502,14 @@ void loop()
 	}
 
 	if(isOn){
-		PID.input = thermocoupleTemperature;
-		PID.setpoint = currentTemperature;
-		pwmSolder = PID.getResult();
+		pidNewTime = millis() / PID_Td;
+		if (pidOldTime != pidNewTime)
+		{
+			PID.input = thermocoupleTemperature;
+			PID.setpoint = currentTemperature;
+			pwmSolder = PID.getResult();
+			pidOldTime = pidNewTime;
+		}
 		pwmFan = map(fanSpeed, 0, 100, pwmFanMin, pwmFanMax);
 	}else{
 		pwmSolder = 0;
