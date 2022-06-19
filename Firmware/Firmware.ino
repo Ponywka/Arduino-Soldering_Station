@@ -60,10 +60,14 @@
 #define encoderLongButtonTime    500
 #define defaultTemperature       200
 #define defaultFanSpeed          50
+#define EEPROM_Enabled
 
 /*
 	Основная программа
 */
+#ifdef EEPROM_Enabled
+	#include <EEPROM.h>
+#endif
 #include <GyverPID.h>
 #include "libraries/gercon.h"
 int fanSpeed = defaultFanSpeed;
@@ -471,9 +475,24 @@ void setup()
 	PID.setDt(PID_Td);
 
 	gerconActivated = gercon.getState();
+	#ifdef EEPROM_Enabled
+		currentTemperature = EEPROM.read(1);
+		currentTemperature = currentTemperature << 8;
+		currentTemperature += EEPROM.read(0);
+		if (currentTemperature > 400) {
+			currentTemperature = defaultTemperature;
+		}
+		fanSpeed = EEPROM.read(2);
+		if (fanSpeed > 100) {
+			currentTemperature = defaultFanSpeed;
+		}
+	#endif
 }
 
 unsigned long thermocoupleOldTime, thermocoupleNewTime, pidOldTime, pidNewTime;
+#ifdef EEPROM_Enabled
+	unsigned long EEPROMOldTime, EEPROMNewTime;
+#endif
 bool gerconLast, gerconCurrent;
 void loop()
 {
@@ -491,6 +510,17 @@ void loop()
 		}
 		gerconLast = gerconCurrent;
 	}
+
+	#ifdef EEPROM_Enabled
+		EEPROMNewTime = millis() / 10000;
+		if (EEPROMOldTime != EEPROMNewTime)
+		{
+			EEPROM.update(0, (byte)(currentTemperature));
+			EEPROM.update(1, (byte)(currentTemperature >> 8));
+			EEPROM.update(2, (byte)(fanSpeed));
+			EEPROMOldTime = EEPROMNewTime;
+		}
+	#endif
 
 	// Опрос термопары
 	thermocoupleNewTime = millis() / thermocoupleTimeout;
