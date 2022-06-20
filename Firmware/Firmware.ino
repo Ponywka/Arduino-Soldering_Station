@@ -86,6 +86,7 @@ MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 	#include "libraries/fontController.h"
 	#include "fonts/terminus12.h"
 	#include "fonts/terminus24.h"
+	#include "images/warning.h"
 	#include "images/fan1.h"
 	#include "images/fan2.h"
 	#include "images/fan3.h"
@@ -183,21 +184,48 @@ void offHeat(){
 	#endif
 
 	void menu0(){
-		#ifdef displayTM1637_Enabled
-			displayTM1637Buffer[0] = 0;
-			displayTM1637Buffer[1] = _O;
-			displayTM1637Buffer[2] = _F;
-			displayTM1637Buffer[3] = _F;
-		#endif
-		#ifdef displaySSD1306_Enabled
+		if(offFanComplete){
 			// Надпись OFF
-			fntCtrl.setFont(font_terminus24);
-			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, "OFF");
-			// Текущая температура
-			STR_START "Current: " STR_CON String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
-			fntCtrl.setFont(font_terminus12);
-			fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 16, CenterCenter, Left, outString.c_str());
-		#endif
+			#ifdef displayTM1637_Enabled
+				displayTM1637Buffer[0] = 0;
+				displayTM1637Buffer[1] = _O;
+				displayTM1637Buffer[2] = _F;
+				displayTM1637Buffer[3] = _F;
+			#endif
+
+			#ifdef displaySSD1306_Enabled
+				fntCtrl.setFont(font_terminus24);
+				fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, "OFF");
+			#endif
+		}else{
+			// Надпись "Не выключайте питание!"
+			if ((bool)((millis() / 500) % 2)) {
+				#ifdef displayTM1637_Enabled
+					displayTM1637_writeInt(thermocoupleTemperature);
+				#endif
+				#ifdef displaySSD1306_Enabled
+					displaySSD1306.drawBitmap(0, 0, image_warning, 16, 16, 1);
+					STR_START "   Please DO NOT\nturn off power!" STR_END
+					fntCtrl.setFont(font_terminus12);
+					fntCtrl.drawTextFormated(0, 0, displaySSD1306Width, 32, CenterCenter, Center, outString.c_str());
+				#endif
+			}
+			#ifdef displayTM1637_Enabled
+				displayTM1637Buffer[0] = _H;
+			#endif
+			#ifdef displaySSD1306_Enabled
+				// Скорость вентилятора
+				drawFan(0, displaySSD1306Height - 16);
+				STR_START "  100%" STR_END
+				fntCtrl.setFont(font_terminus12);
+				fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, LeftCenter, Left, outString.c_str());
+				// Текущая температура
+				
+				STR_START String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
+				fntCtrl.setFont(font_terminus12);
+				fntCtrl.drawTextFormated(0, displaySSD1306Height - 16, displaySSD1306Width, displaySSD1306Height, RightCenter, Left, outString.c_str());
+			#endif
+		}
 	}
 
 	void menu1(){
