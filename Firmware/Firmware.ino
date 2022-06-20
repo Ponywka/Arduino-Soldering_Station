@@ -25,8 +25,8 @@
 // 7-ми сегментный дисплей
 // #define displayTM1637_Enabled
 #ifdef displayTM1637_Enabled
-	#define displaySSD1306CLKPin 14 // A2
-	#define displaySSD1306DIOPin 15 // A3
+	#define displaySSD1306CLKPin 14 // A0
+	#define displaySSD1306DIOPin 15 // A1
 	#define displaySSD1306RefreshRate	100;
 #endif
 
@@ -36,7 +36,11 @@
 #define thermocoupleMISO 7
 #define thermocoupleTimeout 250
 
-//	[Настройки PID] // Ku = 160
+//	[Настройки PID]
+/*
+    Высчитано при помощи формулы на https://alexgyver.ru/lessons/pid/
+    Где: kP1 = 160, T = 8, dt = 0.5
+*/
 #define PID_Kp	96
 #define PID_Ki	12
 #define PID_Kd	192
