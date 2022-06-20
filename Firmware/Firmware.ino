@@ -516,7 +516,7 @@ void setup()
 		}
 		fanSpeed = EEPROM.read(2);
 		if (fanSpeed > 100) {
-			currentTemperature = defaultFanSpeed;
+			fanSpeed = defaultFanSpeed;
 		}
 	#endif
 }
