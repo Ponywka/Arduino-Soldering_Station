@@ -85,7 +85,7 @@ MAX6675 thermocouple(thermocoupleSCK, thermocoupleCS, thermocoupleMISO);
 	#include <Adafruit_SSD1306.h>
 	#include "libraries/fontController.h"
 	#include "fonts/terminus12.h"
-	#include "fonts/terminus24.h"
+	#include "fonts/terminus24_indicator.h"
 	#include "images/warning.h"
 	#include "images/fan1.h"
 	#include "images/fan2.h"
@@ -194,7 +194,7 @@ void offHeat(){
 			#endif
 
 			#ifdef displaySSD1306_Enabled
-				fntCtrl.setFont(font_terminus24);
+				fntCtrl.setFont(font_terminus24_indicator);
 				fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, "OFF");
 			#endif
 		}else{
@@ -235,7 +235,7 @@ void offHeat(){
 		#ifdef displaySSD1306_Enabled
 			// Текущая температура
 			STR_START String((int)thermocoupleTemperature) STR_CON (char)128 STR_CON "C" STR_END
-			fntCtrl.setFont(font_terminus24);
+			fntCtrl.setFont(font_terminus24_indicator);
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
 			// Выбранная температура
 			STR_START "Selected: " STR_CON String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
@@ -260,7 +260,7 @@ void offHeat(){
 		#endif
 		#ifdef displaySSD1306_Enabled
 			// Выбранная температура
-			fntCtrl.setFont(font_terminus24);
+			fntCtrl.setFont(font_terminus24_indicator);
 			STR_START String(currentTemperature) STR_CON (char)128 STR_CON "C" STR_END
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
 			// Текущая температура
@@ -291,7 +291,7 @@ void offHeat(){
 		#endif
 		#ifdef displaySSD1306_Enabled
 			// Текущая скорость вентилятора
-			fntCtrl.setFont(font_terminus24);
+			fntCtrl.setFont(font_terminus24_indicator);
 			STR_START String(fanSpeed) STR_CON "%" STR_END
 			fntCtrl.drawTextFormated(0, 16, displaySSD1306Width, displaySSD1306Height - 16, CenterCenter, Left, outString.c_str());
 			// Текущая температура
