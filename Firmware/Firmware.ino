@@ -41,9 +41,9 @@
     Высчитано при помощи формулы на https://alexgyver.ru/lessons/pid/
     Где: kP1 = 160, T = 8, dt = 0.5
 */
-#define PID_Kp	96
-#define PID_Ki	12
-#define PID_Kd	192
+#define PID_Kp	10
+#define PID_Ki	0.1
+#define PID_Kd	10
 #define PID_Td	500
 
 //	[Настройки PWM]
