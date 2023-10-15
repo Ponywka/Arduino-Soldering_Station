@@ -25,7 +25,7 @@
 // 7-ми сегментный дисплей
 // #define displayTM1637_Enabled
 #ifdef displayTM1637_Enabled
-	#define displaySSD1306CLKPin 14 // A0
+	#define displaySSD1306CLKPin 16 // A2
 	#define displaySSD1306DIOPin 15 // A1
 	#define displaySSD1306RefreshRate	100;
 #endif
