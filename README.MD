@@ -4,6 +4,9 @@
 
 Паяльная стация на Arduino
 
+### Схема
+![Schematic](https://raw.githubusercontent.com/Ponywka/Arduino-Soldering_Station/master/Schematic/image.jpg)
+
 ### Требуемые библиотеки
 
 1. [GyverPID](https://github.com/GyverLibs/GyverPID) (AlexGyver)
