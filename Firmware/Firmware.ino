@@ -281,7 +281,7 @@ void offHeat(){
 
 	unsigned long TimeMenu1Change;
 	void showTimeoutedMenu1Change(){
-		TimeMenu1Change = millis() + 500;
+		TimeMenu1Change = millis() + 1500;
 	};
 
 	void menu2(){
