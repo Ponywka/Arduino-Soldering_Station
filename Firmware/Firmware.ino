@@ -370,7 +370,7 @@ void encoder() {
 				if(millis() < TimeMenu2){
 					showTimeoutedMenu2();
 					valAddress = &fanSpeed;
-					step = 5;
+					step = 10;
 					min = 0;
 					max = 100;
 				}else{
