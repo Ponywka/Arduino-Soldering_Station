@@ -51,8 +51,8 @@
 #define pwmSolderMin 0
 #define pwmSolderMax 1023
 // Вентилятор (0-255)
-#define pwmFanMin 128
-#define pwmFanMax 255
+#define pwmFanMin 32
+#define pwmFanMax 90
 
 //	[Коррекция температуры]
 #define correctionFormula thermocoupleTemperature * 17 / 20 + 20
