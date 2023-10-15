@@ -49,7 +49,7 @@
 //	[Настройки PWM]
 // Паяльник (0-1023)
 #define pwmSolderMin 0
-#define pwmSolderMax 500
+#define pwmSolderMax 1023
 // Вентилятор (0-255)
 #define pwmFanMin 128
 #define pwmFanMax 255
