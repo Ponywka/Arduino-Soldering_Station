@@ -511,7 +511,7 @@ void setup()
 		currentTemperature = EEPROM.read(1);
 		currentTemperature = currentTemperature << 8;
 		currentTemperature += EEPROM.read(0);
-		if (currentTemperature > 400) {
+		if (currentTemperature > 400 || currentTemperature < 0) {
 			currentTemperature = defaultTemperature;
 		}
 		fanSpeed = EEPROM.read(2);
